@@ -65,7 +65,7 @@ class KleeRunOptions:
 
     additionalOptions: str = ""  # Manual additional options.
 
-    envFile: str = coreutils_src_path("test.env", False)
+    envFile: str = coreutils_src_path(name="test.env", isProgram=False)
     runInDir: str = "/tmp/sandbox"
 
     # Default KLEE Coreutils options:
@@ -214,7 +214,7 @@ class KleeRunner:
             opt_arg("tr-input", o.trInputFile),
             o.additionalOptions,
             # Options end.
-            coreutils_src_path(o.name, True),
+            coreutils_src_path(o.name),
             sym_args_for_program(o.name),
         ]
 

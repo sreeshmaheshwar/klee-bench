@@ -26,18 +26,18 @@ def klee_exec_path(exec_name: str) -> str:
     return os.path.join(KLEE_BIN_PATH, exec_name)
 
 
-def coreutils_src_path(name: str, program: bool = True) -> str:
+def coreutils_src_path(name: str, isProgram: bool = True) -> str:
     """
     Get the full path to a Coreutils file.
 
     Args:
         name (str): The name of the file.
-        program (bool): Whether the file is a Coreutils program.
+        isProgram (bool): Whether the file is a Coreutils program.
 
     Returns:
         str: The full path to the Coreutils file.
     """
-    if program and not name.endswith(".bc"):
+    if isProgram and not name.endswith(".bc"):
         name += ".bc"
 
     return os.path.join(COREUTILS_SRC_PATH, name)
