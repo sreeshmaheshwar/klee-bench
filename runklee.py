@@ -123,6 +123,33 @@ def sym_args_for_program(name: str) -> str:
     )
 
 
+class KleeCommandBuilder:
+    """
+    A builder class to construct a KLEE run commands.
+    """
+
+    def __init__(self):
+        self.command = []
+
+    def append(self, s: str) -> "KleeCommandBuilder":
+        self.command.append(s)
+        return self
+
+    def arg(self, k: str, v: Any) -> "KleeCommandBuilder":
+        self.command.append(f"--{k}={v}")
+        return self
+
+    def opt_arg(
+        self, key: str, optional: Any, value: Any = None
+    ) -> "KleeCommandBuilder":
+        if optional is not None:
+            self.command.append(f"--{key}={value if value is not None else optional}")
+        return self
+
+    def __str__(self):
+        return " ".join(filter(bool, self.command))
+
+
 class KleeRunner:
     """
     A class to configure and run KLEE on Coreutils programs.
@@ -147,78 +174,70 @@ class KleeRunner:
         self.options = options
         self.logger = logger
 
-    def get_run_command(self) -> List[str]:
+    def get_run_command(self) -> KleeCommandBuilder:
         """
         Generate the KLEE run command based on the configuration options.
 
         Returns:
-            str: The complete KLEE run command.
+            KleeCommandBuilder: The constructed KLEE run command.
         """
 
-        def arg(k: str, v: Any) -> str:
-            return f"--{k}={v}"
-
-        def opt_arg(key: str, optional: Any, value: Any = None) -> str:
-            if optional is not None:
-                return arg(key, value if value is not None else optional)
-            return ""
-
         o = self.options
-
         # NOTE: 0 is treated as unset by KLEE for these, we support that too.
         # Prevent indefinite run:
         assert o.timeToRun or o.instructions
 
-        command = [
-            klee_exec_path("klee"),
-            # Options begin.
-            arg("env-file", o.envFile),
-            arg("run-in-dir", o.runInDir),
-            arg("output-dir", o.dirName),
-            arg("solver-backend", o.solver.value),
-            opt_arg("max-solver-time", o.solverTimeout),
-            arg("simplify-sym-indices", o.simplifySymIndices),
-            opt_arg("use-query-log", o.logFile, "all:smt2"),
-            arg("write-cvcs", o.writeCvcs),
-            arg("write-cov", o.writeCov),
-            arg("output-module", o.outputModule),
-            arg("max-memory", o.memory),
-            arg("disable-inlining", o.disableInlining),
-            arg("optimize", o.optimize),
-            arg("use-forked-solver", o.useForkedSolver),
-            arg("use-cex-cache", o.cex),
-            arg("use-independent-solver", o.independent),
-            arg("use-branch-cache", o.branch),
-            arg("rewrite-equalities", o.simplify),
-            arg("libc", o.libc),
-            arg("posix-runtime", o.posixRuntime),
-            arg("external-calls", o.externalCalls),
-            arg("only-output-states-covering-new", o.newStates),
-            arg("max-sym-array-size", o.maxSymArraySize),
-            arg("max-time", f"{o.timeToRun or 0}s"),
-            arg("watchdog", bool(o.timeToRun)),
-            arg("max-instructions", o.instructions or 0),
-            arg("max-memory-inhibit", o.maxMemoryInhibit),
-            arg("max-static-fork-pct", o.maxStaticForkPct),
-            arg("max-static-solve-pct", o.maxStaticSolvePct),
-            arg("max-static-cpfork-pct", o.maxStaticCpforkPct),
-            arg("switch-type", o.switchType),
-            arg("dump-states-on-halt", o.dumpStates),
-            o.searchStrategy.value,
-            opt_arg("use-batching-search", o.batchingInstrs, True),
-            opt_arg("batch-instructions", o.batchingInstrs),
-            opt_arg("debug-z3-dump-queries", o.debugDumpZ3File),
-            opt_arg("state-output", o.stateOutputFile),
-            opt_arg("tr-output", o.trOutputFile),
-            opt_arg("state-input", o.stateInputFile),
-            opt_arg("tr-input", o.trInputFile),
-            o.additionalOptions,
-            # Options end.
-            coreutils_src_path(o.name),
-            sym_args_for_program(o.name),
-        ]
-
-        return list(filter(bool, command))
+        return (
+            KleeCommandBuilder()
+            .append(klee_exec_path("klee"))
+            # --- Options start --- 
+            .arg("env-file", o.envFile)
+            .arg("run-in-dir", o.runInDir)
+            .arg("output-dir", o.dirName)
+            .arg("solver-backend", o.solver.value)
+            .opt_arg("max-solver-time", o.solverTimeout)
+            .arg("simplify-sym-indices", o.simplifySymIndices)
+            .opt_arg("use-query-log", o.logFile, "all:smt2")
+            .arg("write-cvcs", o.writeCvcs)
+            .arg("write-cov", o.writeCov)
+            .arg("output-module", o.outputModule)
+            .arg("max-memory", o.memory)
+            .arg("disable-inlining", o.disableInlining)
+            .arg("optimize", o.optimize)
+            .arg("use-forked-solver", o.useForkedSolver)
+            .arg("use-cex-cache", o.cex)
+            .arg("use-independent-solver", o.independent)
+            .arg("use-branch-cache", o.branch)
+            .arg("rewrite-equalities", o.simplify)
+            .arg("libc", o.libc)
+            .arg("posix-runtime", o.posixRuntime)
+            .arg("external-calls", o.externalCalls)
+            .arg("only-output-states-covering-new", o.newStates)
+            .arg("max-sym-array-size", o.maxSymArraySize)
+            .arg("max-time", f"{o.timeToRun or 0}s")
+            .arg("watchdog", bool(o.timeToRun))
+            .arg("max-instructions", o.instructions or 0)
+            .arg("max-memory-inhibit", o.maxMemoryInhibit)
+            .arg("max-static-fork-pct", o.maxStaticForkPct)
+            .arg("max-static-solve-pct", o.maxStaticSolvePct)
+            .arg("max-static-cpfork-pct", o.maxStaticCpforkPct)
+            .arg("switch-type", o.switchType)
+            .arg("dump-states-on-halt", o.dumpStates)
+            .append(o.searchStrategy.value)
+            .opt_arg(
+                "use-batching-search", o.batchingInstrs, True
+            )
+            .opt_arg("batch-instructions", o.batchingInstrs)
+            .opt_arg("debug-z3-dump-queries", o.debugDumpZ3File)
+            .opt_arg("state-output", o.stateOutputFile)
+            .opt_arg("tr-output", o.trOutputFile)
+            .opt_arg("state-input", o.stateInputFile)
+            .opt_arg("tr-input", o.trInputFile)
+            .append(o.additionalOptions)
+            # --- Options end ---
+            .append(coreutils_src_path(o.name))
+            .append(sym_args_for_program(o.name))
+        )
 
     def prepare(self) -> None:
         """
@@ -230,7 +249,7 @@ class KleeRunner:
         if os.path.exists(self.options.dirName) and os.path.isdir(self.options.dirName):
             shutil.rmtree(self.options.dirName)
 
-    def log_command(self, command: List[str]) -> None:
+    def log_command(self, command: str) -> None:
         """
         Log the KLEE run command if a logger is available.
 
@@ -240,7 +259,7 @@ class KleeRunner:
         if self.logger is not None:
             now = datetime.datetime.now()
             self.logger.log_and_print(
-                f"At {now}, running command...\n{' '.join(command)}"
+                f"At {now}, running command...\n{command}"
             )
 
     def save_stats(self) -> str:
@@ -285,12 +304,12 @@ class KleeRunner:
         """
         self.prepare()
 
-        command = self.get_run_command()
+        command = str(self.get_run_command())
         self.log_command(command)
 
         subprocess.run(
-            command
-        )  # Must not set `check=True`. TODO: Catch the error instead?
+            command, shell=True, check=False
+        )  # TODO: Report error instead of setting check=False.
 
         klee_stats_path = self.save_stats()
         results = KResult.from_csv(klee_stats_path)
