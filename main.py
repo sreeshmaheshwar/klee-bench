@@ -123,7 +123,7 @@ def runTargets(
             ),
 
         current = run_klee(
-            optinos=o,
+            options=o,
             logger=logger,
         ).get(KResultField.INSTRUCTIONS)
 
