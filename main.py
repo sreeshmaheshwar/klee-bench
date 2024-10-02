@@ -91,8 +91,25 @@ def runTargets(
         if branch:
             buildBranch(branch)
 
-        current = run_klee(
-            opts(
+        # Disable caches.
+        if approachName.startswith("lcp-pp"):
+            o = opts(
+                name=p,
+                searchStrategy=SearchStrategy.Inputting,
+                batchingInstrs=None,  # Inputting search -> no batching.
+                memory=1500,  # Does not matter (yet).
+                dirName=f"{approachName}-{p}",
+                timeToRun=int(MAX_TIMEOUT_MINS * 60),
+                instructions=instructions,
+                stateInputFile=stateReplayFile,
+                trInputFile=trReplayFile,
+                additionalOptions=options,
+                cex=False,
+                independent=False,
+                branch=False
+            )
+        else:
+            o = opts(
                 name=p,
                 searchStrategy=SearchStrategy.Inputting,
                 batchingInstrs=None,  # Inputting search -> no batching.
@@ -104,6 +121,9 @@ def runTargets(
                 trInputFile=trReplayFile,
                 additionalOptions=options,
             ),
+
+        current = run_klee(
+            optinos=o,
             logger=logger,
         ).get(KResultField.INSTRUCTIONS)
 
@@ -118,11 +138,21 @@ if __name__ == "__main__":
     # runBaseline(logger)
 
     # Rerun baseline with approaches:
+    # runTargets(
+    #     logger,
+    #     [
+    #         ApproachToTest("deterministic-mainline", "mainline", ""),
+    #         ApproachToTest("s2g-base", "s2g", ""),
+    #         ApproachToTest("s2g-base", "s2g-timeout", "--inc-timeout=1000"),
+    #     ],
+    # )
+
+    # TODO: Add incremental timeout.
     runTargets(
         logger,
         [
-            ApproachToTest("deterministic-mainline", "mainline", ""),
-            ApproachToTest("s2g-base", "s2g", ""),
-            ApproachToTest("s2g-base", "s2g-timeout", "--inc-timeout=1000"),
-        ],
+            ApproachToTest("lcp-pp-original", "lcp-pp-original", ""),
+            ApproachToTest("lcp-pp-improved-arrays", "lcp-pp-improved-arrays", ""),
+            ApproachToTest("lcp-pooling", "lcp-pooling", ""),
+        ]
     )
