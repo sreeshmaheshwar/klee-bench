@@ -61,8 +61,8 @@ def runBaselines():
                 memory=1500,
                 dirName=f"mainline-supplier-{p}",
                 timeToRun=int(BASELINE_RUN_TIME * 60),
-                stateOutputFile=stateReplayFile,
-                trOutputFile=trReplayFile,
+                stateOutputFile=stateReplayFile[:-3],  # Remove .gz
+                trOutputFile=trReplayFile[:-3],  # Remove .gz
             ),
             logger=logger,
         ).get(KResultField.INSTRUCTIONS)
