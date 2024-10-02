@@ -120,7 +120,7 @@ def runTargets(
                 stateInputFile=stateReplayFile,
                 trInputFile=trReplayFile,
                 additionalOptions=options,
-            ),
+            )
 
         current = run_klee(
             options=o,
