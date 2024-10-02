@@ -35,7 +35,7 @@ PROGRAMS = [
 
 def buildBranch(branchName):
     curDir = os.getcwd()
-    os.chdir(f"{KLEE_BIN_PATH}/../build")
+    os.chdir(f"{KLEE_BIN_PATH}/..")
     os.system("git fetch --all")
     os.system(f"git checkout {branchName}")
     os.system("git pull")
