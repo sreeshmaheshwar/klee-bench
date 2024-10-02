@@ -15,7 +15,7 @@ BATCHING_INSTRS = 1000
 INSTRUCTION_OFFSET = 200
 
 # TODO: Increase when time increases
-BASELINE_RUN_TIME = 10
+BASELINE_RUN_TIME = 2
 
 # TODO: Increase when time increases
 MAX_TIMEOUT_MINS = 30
