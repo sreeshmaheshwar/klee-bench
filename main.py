@@ -1,6 +1,7 @@
 from util import *
 from runklee import run_klee, KleeRunOptions as opts, SearchStrategy
-from kresult import KResultField
+from kresult import KResult, KResultField
+from collections import namedtuple
 
 import os
 
@@ -43,38 +44,50 @@ def buildBranch(branchName):
     os.chdir(curDir)
 
 
-def runBaselines():
+def runBaseline(logger):
     assert 0 <= VM_ID < len(PROGRAMS)
     p = PROGRAMS[VM_ID]
-    logger = ProgressLogger()
 
     stateReplayFile = f"{REPLAY_LOCATION}/{p}-states.gz"
     trReplayFile = f"{REPLAY_LOCATION}/{p}-tr.gz"
 
     buildBranch("deterministic-mainline")
+    run_klee(
+        opts(
+            name=p,
+            searchStrategy=SearchStrategy.DefaultHeuristic,
+            batchingInstrs=1000,  # NB: Normal is 10000.
+            memory=1500,
+            dirName=f"mainline-supplier-{p}",
+            timeToRun=int(BASELINE_RUN_TIME * 60),
+            stateOutputFile=stateReplayFile[:-3],  # Remove .gz
+            trOutputFile=trReplayFile[:-3],  # Remove .gz
+        ),
+        logger=logger,
+    )
+
+
+ApproachToTest = namedtuple("ApproachToTest", ["branch", "approachName", "options"])
+
+
+def runTargets(
+    logger: ProgressLogger,
+    approaches: List[ApproachToTest],
+):
+    assert 0 <= VM_ID < len(PROGRAMS)
+    p = PROGRAMS[VM_ID]
+
+    stateReplayFile = f"{REPLAY_LOCATION}/{p}-states.gz"
+    trReplayFile = f"{REPLAY_LOCATION}/{p}-tr.gz"
+
     instructions = (
-        run_klee(
-            opts(
-                name=p,
-                searchStrategy=SearchStrategy.DefaultHeuristic,
-                batchingInstrs=1000,  # NB: Normal is 10000.
-                memory=1500,
-                dirName=f"mainline-supplier-{p}",
-                timeToRun=int(BASELINE_RUN_TIME * 60),
-                stateOutputFile=stateReplayFile[:-3],  # Remove .gz
-                trOutputFile=trReplayFile[:-3],  # Remove .gz
-            ),
-            logger=logger,
-        ).get(KResultField.INSTRUCTIONS)
+        KResult.from_csv(f"mainline-supplier-{p}.stats.csv").get(
+            KResultField.INSTRUCTIONS
+        )
         - INSTRUCTION_OFFSET
     )
 
-    # Replay baseline together with strategies to test.
-    for branch, options, approachName in [
-        ("", "", "mainline"),
-        ("s2g-base", "", "s2g"),
-        ("s2g-base", "--inc-timeout=1000", "s2g-timeout"),
-    ]:
+    for branch, approachName, options in approaches:
         if branch:
             buildBranch(branch)
 
@@ -82,7 +95,7 @@ def runBaselines():
             opts(
                 name=p,
                 searchStrategy=SearchStrategy.Inputting,
-                batchingInstrs=BATCHING_INSTRS,  # NB: Normal is 10000.
+                batchingInstrs=None,  # Inputting search -> no batching.
                 memory=1500,  # Does not matter (yet).
                 dirName=f"{approachName}-{p}",
                 timeToRun=int(MAX_TIMEOUT_MINS * 60),
@@ -99,4 +112,17 @@ def runBaselines():
 
 
 if __name__ == "__main__":
-    runBaselines()
+    logger = ProgressLogger()
+
+    # Baseline run:
+    # runBaseline(logger)
+
+    # Rerun baseline with approaches:
+    runTargets(
+        logger,
+        [
+            ApproachToTest("deterministic-mainline", "mainline", ""),
+            ApproachToTest("s2g-base", "s2g", ""),
+            ApproachToTest("s2g-base", "s2g-timeout", "--inc-timeout=1000"),
+        ],
+    )
