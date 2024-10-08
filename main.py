@@ -130,9 +130,9 @@ if __name__ == "__main__":
             ApproachToTest("deterministic-mainline", "mainline", ""),
             # ApproachToTest("lcp-pp-original", "lcp-pp-original", ""),
             # ApproachToTest("lcp-pp-improved-arrays", "lcp-pp-improved-arrays", ""),
-            # ApproachToTest("lcp-pooling", "lcp-pooling", ""),
-            ApproachToTest("csa-tr-attempt", "csa-tr", "--restart-interval=500 --csa-timeout=1000 --inc-timeout=500")
-            # ApproachToTest("partition-early-improved", "pe", "")
+            ApproachToTest("lcp-pooling", "lcp-pooling", ""),
+            ApproachToTest("csa-tr-attempt", "csa-tr", "--restart-interval=500 --csa-timeout=1000 --inc-timeout=500"),
+            ApproachToTest("partition-early-improved", "pe", "")
         ]
     )
 
