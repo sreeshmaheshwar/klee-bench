@@ -11,15 +11,15 @@ REPLAY_LOCATION = os.getenv(
 )  # Absolute path of where to store compressed states and termination replays.
 
 # TODO: Normal is 10000.
-BATCHING_INSTRS = 1000
+BATCHING_INSTRS = 3333
 
-INSTRUCTION_OFFSET = 200
-
-# TODO: Increase when time increases
-BASELINE_RUN_TIME = 2
+INSTRUCTION_OFFSET = 500
 
 # TODO: Increase when time increases
-MAX_TIMEOUT_MINS = 30
+BASELINE_RUN_TIME = 20
+
+# TODO: Increase when time increases
+MAX_TIMEOUT_MINS = 60
 
 # Eight programs tested in Individual Project evaluation.
 PROGRAMS = [
@@ -45,8 +45,9 @@ def buildBranch(branchName):
 
 
 def runBaseline(logger):
-    assert 0 <= VM_ID < len(PROGRAMS)
-    p = PROGRAMS[VM_ID]
+    # assert 0 <= VM_ID < len(PROGRAMS)
+    # p = PROGRAMS[VM_ID]
+    p = "fold"
 
     stateReplayFile = f"{REPLAY_LOCATION}/{p}-states.gz"
     trReplayFile = f"{REPLAY_LOCATION}/{p}-tr.gz"
@@ -56,8 +57,8 @@ def runBaseline(logger):
         opts(
             name=p,
             searchStrategy=SearchStrategy.DefaultHeuristic,
-            batchingInstrs=1000,  # NB: Normal is 10000.
-            memory=1500,
+            batchingInstrs=BATCHING_INSTRS,  # NB: Normal is 10000.
+            memory=2000,
             dirName=f"mainline-supplier-{p}",
             timeToRun=int(BASELINE_RUN_TIME * 60),
             stateOutputFile=stateReplayFile[:-3],  # Remove .gz
@@ -74,8 +75,9 @@ def runTargets(
     logger: ProgressLogger,
     approaches: List[ApproachToTest],
 ):
-    assert 0 <= VM_ID < len(PROGRAMS)
-    p = PROGRAMS[VM_ID]
+    # assert 0 <= VM_ID < len(PROGRAMS)
+    # p = PROGRAMS[VM_ID]
+    p = "fold"
 
     stateReplayFile = f"{REPLAY_LOCATION}/{p}-states.gz"
     trReplayFile = f"{REPLAY_LOCATION}/{p}-tr.gz"
@@ -120,7 +122,19 @@ if __name__ == "__main__":
     logger = ProgressLogger()
 
     # Baseline run:
-    # runBaseline(logger)
+    runBaseline(logger)
+
+    runTargets(
+        logger,
+        [
+            ApproachToTest("deterministic-mainline", "mainline", ""),
+            # ApproachToTest("lcp-pp-original", "lcp-pp-original", ""),
+            # ApproachToTest("lcp-pp-improved-arrays", "lcp-pp-improved-arrays", ""),
+            # ApproachToTest("lcp-pooling", "lcp-pooling", ""),
+            ApproachToTest("csa-tr-attempt", "csa-tr", "--restart-interval=500 --csa-timeout=1000 --inc-timeout=500")
+            # ApproachToTest("partition-early-improved", "pe", "")
+        ]
+    )
 
     # Rerun baseline with approaches:
     # runTargets(
@@ -133,13 +147,11 @@ if __name__ == "__main__":
     # )
 
     # TODO: Add incremental timeout.
-    runTargets(
-        logger,
-        [
-            # ApproachToTest("lcp-pp-original", "lcp-pp-original", ""),
-            # ApproachToTest("lcp-pp-improved-arrays", "lcp-pp-improved-arrays", ""),
-            # ApproachToTest("lcp-pooling", "lcp-pooling", ""),
-            ApproachToTest("csa-tr-attempt", "csa-tr", "--restart-interval=100")
-            # ApproachToTest("partition-early-improved", "pe", "")
-        ]
-    )
+    # runTargets(
+    #     logger,
+    #     [
+    #         ApproachToTest("lcp-pp-original", "lcp-pp-original", ""),
+    #         ApproachToTest("lcp-pp-improved-arrays", "lcp-pp-improved-arrays", ""),
+    #         ApproachToTest("lcp-pooling", "lcp-pooling", ""),
+    #     ]
+    # )
