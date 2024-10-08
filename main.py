@@ -125,6 +125,7 @@ if __name__ == "__main__":
     runTargets(
         logger,
         [
+            ApproachToTest("deterministic-mainline", "mainline", ""),
             # ApproachToTest("lcp-pp-original", "lcp-pp-original", ""),
             # ApproachToTest("lcp-pp-improved-arrays", "lcp-pp-improved-arrays", ""),
             # ApproachToTest("lcp-pooling", "lcp-pooling", ""),
