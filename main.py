@@ -16,7 +16,7 @@ BATCHING_INSTRS = 1000
 INSTRUCTION_OFFSET = 200
 
 # TODO: Increase when time increases
-BASELINE_RUN_TIME = 2
+BASELINE_RUN_TIME = 5
 
 # TODO: Increase when time increases
 MAX_TIMEOUT_MINS = 30
@@ -48,20 +48,15 @@ def runBaseline(logger):
     assert 0 <= VM_ID < len(PROGRAMS)
     p = PROGRAMS[VM_ID]
 
-    stateReplayFile = f"{REPLAY_LOCATION}/{p}-states.gz"
-    trReplayFile = f"{REPLAY_LOCATION}/{p}-tr.gz"
-
     buildBranch("deterministic-mainline")
     run_klee(
         opts(
             name=p,
             searchStrategy=SearchStrategy.DefaultHeuristic,
             batchingInstrs=1000,  # NB: Normal is 10000.
-            memory=1500,
+            memory=2000,
             dirName=f"mainline-supplier-{p}",
             timeToRun=int(BASELINE_RUN_TIME * 60),
-            stateOutputFile=stateReplayFile[:-3],  # Remove .gz
-            trOutputFile=trReplayFile[:-3],  # Remove .gz
         ),
         logger=logger,
     )
@@ -76,9 +71,6 @@ def runTargets(
 ):
     assert 0 <= VM_ID < len(PROGRAMS)
     p = PROGRAMS[VM_ID]
-
-    stateReplayFile = f"{REPLAY_LOCATION}/{p}-states.gz"
-    trReplayFile = f"{REPLAY_LOCATION}/{p}-tr.gz"
 
     instructions = (
         KResult.from_csv(f"mainline-supplier-{p}.stats.csv").get(
@@ -96,14 +88,11 @@ def runTargets(
             # cex=False,
             # independent=False,
             # branch=False,
-            searchStrategy=SearchStrategy.Inputting,
-            batchingInstrs=None,  # Inputting search -> no batching.
-            memory=1500,  # Does not matter (yet).
+            searchStrategy=SearchStrategy.DFS,
+            memory=2000,  # Now it matters.
             dirName=f"{approachName}-{p}",
             timeToRun=int(MAX_TIMEOUT_MINS * 60),
             instructions=instructions,
-            stateInputFile=stateReplayFile,
-            trInputFile=trReplayFile,
             additionalOptions=options,
         )
 
@@ -120,7 +109,7 @@ if __name__ == "__main__":
     logger = ProgressLogger()
 
     # Baseline run:
-    # runBaseline(logger)
+    runBaseline(logger)
 
     # Rerun baseline with approaches:
     # runTargets(
