@@ -8,7 +8,7 @@ import subprocess
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 
 class Solver(Enum):
@@ -190,7 +190,7 @@ class KleeRunner:
         return (
             KleeCommandBuilder()
             .append(klee_exec_path("klee"))
-            # --- Options start --- 
+            # --- Options start ---
             .arg("env-file", o.envFile)
             .arg("run-in-dir", o.runInDir)
             .arg("output-dir", o.dirName)
@@ -224,9 +224,7 @@ class KleeRunner:
             .arg("switch-type", o.switchType)
             .arg("dump-states-on-halt", o.dumpStates)
             .append(o.searchStrategy.value)
-            .opt_arg(
-                "use-batching-search", o.batchingInstrs, True
-            )
+            .opt_arg("use-batching-search", o.batchingInstrs, True)
             .opt_arg("batch-instructions", o.batchingInstrs)
             .opt_arg("debug-z3-dump-queries", o.debugDumpZ3File)
             .opt_arg("state-output", o.stateOutputFile)
@@ -258,9 +256,7 @@ class KleeRunner:
         """
         if self.logger is not None:
             now = datetime.datetime.now()
-            self.logger.log_and_print(
-                f"At {now}, running command...\n{command}"
-            )
+            self.logger.log_and_print(f"At {now}, running command...\n{command}")
 
     def save_stats(self) -> str:
         """
