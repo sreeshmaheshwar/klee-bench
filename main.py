@@ -52,9 +52,9 @@ def runBaseline(logger):
     run_klee(
         opts(
             name=p,
-            searchStrategy=SearchStrategy.DefaultHeuristic,
-            batchingInstrs=1000,  # NB: Normal is 10000.
-            memory=2000,
+            searchStrategy=SearchStrategy.DFS,
+            batchingInstrs=None,
+            memory=3000,
             dirName=f"mainline-supplier-{p}",
             timeToRun=int(BASELINE_RUN_TIME * 60),
         ),
@@ -89,7 +89,8 @@ def runTargets(
             # independent=False,
             # branch=False,
             searchStrategy=SearchStrategy.DFS,
-            memory=2000,  # Now it matters.
+            batchingInstrs=None,
+            memory=3000,  # Now it matters.
             dirName=f"{approachName}-{p}",
             timeToRun=int(MAX_TIMEOUT_MINS * 60),
             instructions=instructions,
