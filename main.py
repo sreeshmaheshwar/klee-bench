@@ -128,7 +128,7 @@ if __name__ == "__main__":
             # ApproachToTest("lcp-pp-original", "lcp-pp-original", ""),
             # ApproachToTest("lcp-pp-improved-arrays", "lcp-pp-improved-arrays", ""),
             # ApproachToTest("lcp-pooling", "lcp-pooling", ""),
-            ApproachToTest("csa-tr-attempt", "csa-tr", "--restart-interval=100")
+            ApproachToTest("csa-tr-attempt", "csa-tr", "--restart-interval=500")
             # ApproachToTest("partition-early-improved", "pe", "")
         ]
     )
