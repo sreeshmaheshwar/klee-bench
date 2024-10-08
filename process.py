@@ -8,8 +8,6 @@ ALL_COREUTIL_PROGRAMS = [
     "base64",
 ]
 
-# StrategyToProcess = namedtuple("StrategyToProcess", ["prettyName", "approachName", "options"])
-
 @dataclass
 class StrategyToProcess:
     prettyName: str
