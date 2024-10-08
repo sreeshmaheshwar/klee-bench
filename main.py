@@ -91,36 +91,21 @@ def runTargets(
         if branch:
             buildBranch(branch)
 
-        # Disable caches.
-        if approachName.startswith("lcp-pp"):
-            o = opts(
-                name=p,
-                searchStrategy=SearchStrategy.Inputting,
-                batchingInstrs=None,  # Inputting search -> no batching.
-                memory=1500,  # Does not matter (yet).
-                dirName=f"{approachName}-{p}",
-                timeToRun=int(MAX_TIMEOUT_MINS * 60),
-                instructions=instructions,
-                stateInputFile=stateReplayFile,
-                trInputFile=trReplayFile,
-                additionalOptions=options,
-                cex=False,
-                independent=False,
-                branch=False
-            )
-        else:
-            o = opts(
-                name=p,
-                searchStrategy=SearchStrategy.Inputting,
-                batchingInstrs=None,  # Inputting search -> no batching.
-                memory=1500,  # Does not matter (yet).
-                dirName=f"{approachName}-{p}",
-                timeToRun=int(MAX_TIMEOUT_MINS * 60),
-                instructions=instructions,
-                stateInputFile=stateReplayFile,
-                trInputFile=trReplayFile,
-                additionalOptions=options,
-            )
+        o = opts(
+            name=p,
+            # cex=False,
+            # independent=False,
+            # branch=False,
+            searchStrategy=SearchStrategy.Inputting,
+            batchingInstrs=None,  # Inputting search -> no batching.
+            memory=1500,  # Does not matter (yet).
+            dirName=f"{approachName}-{p}",
+            timeToRun=int(MAX_TIMEOUT_MINS * 60),
+            instructions=instructions,
+            stateInputFile=stateReplayFile,
+            trInputFile=trReplayFile,
+            additionalOptions=options,
+        )
 
         current = run_klee(
             options=o,
@@ -151,8 +136,10 @@ if __name__ == "__main__":
     runTargets(
         logger,
         [
-            ApproachToTest("lcp-pp-original", "lcp-pp-original", ""),
-            ApproachToTest("lcp-pp-improved-arrays", "lcp-pp-improved-arrays", ""),
-            ApproachToTest("lcp-pooling", "lcp-pooling", ""),
+            # ApproachToTest("lcp-pp-original", "lcp-pp-original", ""),
+            # ApproachToTest("lcp-pp-improved-arrays", "lcp-pp-improved-arrays", ""),
+            # ApproachToTest("lcp-pooling", "lcp-pooling", ""),
+            ApproachToTest("csa-tr-attempt", "csa-tr", "--restart-interval=100")
+            # ApproachToTest("partition-early-improved", "pe", "")
         ]
     )
