@@ -146,7 +146,7 @@ class KleeCommandBuilder:
             self.command.append(f"--{key}={value if value is not None else optional}")
         return self
 
-    def __str__(self):
+    def build(self) -> str:
         return " ".join(filter(bool, self.command))
 
 
@@ -174,12 +174,12 @@ class KleeRunner:
         self.options = options
         self.logger = logger
 
-    def get_run_command(self) -> KleeCommandBuilder:
+    def get_run_command(self) -> str:
         """
         Generate the KLEE run command based on the configuration options.
 
         Returns:
-            KleeCommandBuilder: The constructed KLEE run command.
+            str: The constructed KLEE run command.
         """
 
         o = self.options
@@ -235,6 +235,7 @@ class KleeRunner:
             # --- Options end ---
             .append(coreutils_src_path(o.name))
             .append(sym_args_for_program(o.name))
+            .build()
         )
 
     def prepare(self) -> None:
@@ -300,7 +301,7 @@ class KleeRunner:
         """
         self.prepare()
 
-        command = str(self.get_run_command())
+        command = self.get_run_command()
         self.log_command(command)
 
         subprocess.run(
